@@ -1,4 +1,4 @@
-# transitions_reactflow
+# transitions-reactflow
 
 A React Flow graph engine extension for the [pytransitions](https://github.com/pytransitions/transitions) state machine library.
 
