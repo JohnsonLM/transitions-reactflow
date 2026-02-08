@@ -1,4 +1,5 @@
 # transitions-reactflow
+![example workflow](https://github.com/JohnsonLM/transitions-reactflow/actions/workflows/test.yml/badge.svg)
 
 A React Flow graph engine extension for the [pytransitions](https://github.com/pytransitions/transitions) state machine library.
 
