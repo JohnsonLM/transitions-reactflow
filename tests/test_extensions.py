@@ -14,6 +14,107 @@ from transitions_reactflow import (
 )
 
 
+class TestReactFlowMachine:
+    """Test cases for ReactFlowMachine."""
+
+    def test_simple_machine_creation(self):
+        """Test creating a simple state machine."""
+        states = ['idle', 'running', 'stopped']
+        transitions = [
+            {'trigger': 'start', 'source': 'idle', 'dest': 'running'},
+            {'trigger': 'stop', 'source': 'running', 'dest': 'stopped'}
+        ]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+        assert machine.state == 'idle'
+
+    def test_get_graph(self):
+        """Test graph generation."""
+        states = ['idle', 'running']
+        transitions = [{'trigger': 'start',
+                        'source': 'idle', 'dest': 'running'}]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+        graph = machine.get_graph()
+
+        assert 'nodes' in graph
+        assert 'edges' in graph
+        assert len(graph['nodes']) == 2
+        assert len(graph['edges']) == 1
+
+    def test_unused_states_filtered(self):
+        """Test that unused states are filtered from graph."""
+        states = ['idle', 'processing_validating', 'processing_payment', 'completed']
+        transitions = [
+            {'trigger': 'start', 'source': 'idle', 'dest': 'processing_validating'},
+            {'trigger': 'finish', 'source': 'processing_validating', 'dest': 'completed'}
+        ]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+        graph = machine.get_graph()
+
+        node_ids = {node['id'] for node in graph['nodes']}
+        assert 'processing_payment' not in node_ids
+        assert 'processing_validating' in node_ids
+
+    def test_duplicate_edges_unique_ids(self):
+        """Test that duplicate edges get unique IDs."""
+        states = ['idle', 'running']
+        transitions = [
+            {'trigger': 'start', 'source': 'idle', 'dest': 'running'},
+            {'trigger': 'restart', 'source': 'idle', 'dest': 'running'},
+        ]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+        graph = machine.get_graph()
+
+        assert len(graph['edges']) == 2
+        edge_ids = [edge['id'] for edge in graph['edges']]
+        assert len(edge_ids) == len(set(edge_ids))
+
+    def test_state_with_dict_config(self):
+        """Test states defined with dict configuration."""
+        states = [
+            'idle',
+            {'name': 'processing_validating'},
+            {'name': 'processing_payment'},
+            'completed'
+        ]
+        transitions = [
+            {'trigger': 'start', 'source': 'idle', 'dest': 'processing_validating'},
+            {'trigger': 'validate', 'source': 'processing_validating', 'dest': 'processing_payment'},
+            {'trigger': 'pay', 'source': 'processing_payment', 'dest': 'completed'}
+        ]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+
+        assert hasattr(machine, 'start')
+        assert hasattr(machine, 'validate')
+        assert hasattr(machine, 'pay')
+
+        machine.start()
+        assert machine.state == 'processing_validating'
+
+        machine.validate()
+        assert machine.state == 'processing_payment'
+
+        machine.pay()
+        assert machine.state == 'completed'
+
+    def test_non_react_flow_graph_engine(self):
+        """Test _init_graphviz_engine with non-react-flow engine."""
+        from transitions_reactflow.diagrams_reactflow import ReactFlowGraph
+
+        machine = ReactFlowMachine.__new__(ReactFlowMachine)
+        result = machine._init_graphviz_engine('graphviz')
+        assert result != ReactFlowGraph
+
+
 class TestHierarchicalReactFlowMachine:
     """Test cases for HierarchicalReactFlowMachine."""
 
