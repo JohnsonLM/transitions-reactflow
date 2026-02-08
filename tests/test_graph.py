@@ -14,7 +14,7 @@ class TestReactFlowGraph:
                         'source': 'idle', 'dest': 'running'}]
 
         machine = ReactFlowMachine(
-            states=states, transitions=transitions, initial='idle')
+            states=states, transitions=transitions, initial='idle', graph_engine='react-flow')
         graph = machine.get_graph()
 
         # Check node structure
