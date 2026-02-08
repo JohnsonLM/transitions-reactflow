@@ -1,7 +1,6 @@
 """Tests for ReactFlow extension machine classes."""
 
 import pytest
-import asyncio
 import threading
 import time
 from transitions_reactflow import (
@@ -371,8 +370,7 @@ class TestAsyncReactFlowMachine:
         await machine.stop()
         assert machine.state == 'stopped'
 
-    @pytest.mark.asyncio
-    async def test_get_graph(self):
+    def test_get_graph(self):
         """Test graph generation."""
         states = ['idle', 'running']
         transitions = [{'trigger': 'start',
@@ -442,8 +440,7 @@ class TestHierarchicalAsyncReactFlowMachine:
         await machine.finish()
         assert machine.state == 'completed'
 
-    @pytest.mark.asyncio
-    async def test_get_graph(self):
+    def test_get_graph(self):
         """Test graph generation."""
         states = ['idle', 'running']
         transitions = [{'trigger': 'start',
