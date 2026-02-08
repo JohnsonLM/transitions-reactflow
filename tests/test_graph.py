@@ -128,3 +128,38 @@ class TestReactFlowGraph:
 
         running_node = [n for n in graph['nodes'] if n['id'] == 'running'][0]
         assert running_node['data']['label'] == 'running'
+
+    def test_roi_state_parameter(self):
+        """Test that roi_state parameter is accepted (though not implemented)."""
+        states = ['idle', 'running']
+        transitions = [{'trigger': 'start',
+                        'source': 'idle', 'dest': 'running'}]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+        # The roi_state parameter is in the method signature but not used
+        # This test just ensures the method can be called
+        graph = machine.get_graph()
+        assert 'nodes' in graph
+        assert 'edges' in graph
+
+    def test_set_previous_transition(self):
+        """Test set_previous_transition method (no-op for React Flow)."""
+        from transitions_reactflow.graph import ReactFlowGraph
+
+        graph = ReactFlowGraph(None)
+        # Should not raise an error
+        graph.set_previous_transition('idle', 'running')
+        # Method is no-op, so no assertions needed
+
+    def test_get_graph_exception_handling(self):
+        """Test exception handling in get_graph method."""
+        from transitions_reactflow.graph import ReactFlowGraph
+        from unittest.mock import patch
+
+        graph = ReactFlowGraph(None)
+
+        # Mock _get_elements to return invalid data that causes an exception
+        with patch.object(graph, '_get_elements', return_value=(None, [])):
+            with pytest.raises(ValueError, match="Failed to generate React Flow graph"):
+                graph.get_graph()

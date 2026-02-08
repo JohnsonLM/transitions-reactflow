@@ -136,3 +136,81 @@ class TestReactFlowMachine:
         with pytest.raises(ValueError, match="must be a list"):
             ReactFlowMachine(states=states, transitions=[],
                              initial='processing')
+
+    def test_hierarchical_states_with_dict_children(self):
+        """Test hierarchical states where children are dict objects."""
+        states = [
+            'idle',
+            {
+                'name': 'processing',
+                'children': [
+                    {'name': 'validating'},
+                    {'name': 'payment'}
+                ]
+            },
+            'completed'
+        ]
+        transitions = [
+            {'trigger': 'start', 'source': 'idle',
+                'dest': 'processing_validating'},
+            {'trigger': 'validate', 'source': 'processing_validating',
+                'dest': 'processing_payment'},
+            {'trigger': 'pay', 'source': 'processing_payment', 'dest': 'completed'}
+        ]
+
+        machine = ReactFlowMachine(
+            states=states, transitions=transitions, initial='idle')
+
+        # Test that states were created correctly
+        assert hasattr(machine, 'start')
+        assert hasattr(machine, 'validate')
+        assert hasattr(machine, 'pay')
+
+        # Test transitions work
+        machine.start()
+        assert machine.state == 'processing_validating'
+
+        machine.validate()
+        assert machine.state == 'processing_payment'
+
+        machine.pay()
+        assert machine.state == 'completed'
+
+    def test_invalid_child_dict_without_name(self):
+        """Test that child dict must have name."""
+        states = [
+            {
+                'name': 'processing',
+                'children': [
+                    {'label': 'Validation'}  # Missing 'name'
+                ]
+            }
+        ]
+
+        with pytest.raises(ValueError, match="Child state dict must have 'name'"):
+            ReactFlowMachine(states=states, transitions=[],
+                             initial='processing')
+
+    def test_invalid_child_type(self):
+        """Test that invalid child types raise error."""
+        states = [
+            {
+                'name': 'processing',
+                'children': [123]  # Invalid type
+            }
+        ]
+
+        with pytest.raises(ValueError, match="Invalid child type"):
+            ReactFlowMachine(states=states, transitions=[],
+                             initial='processing')
+
+    def test_non_react_flow_graph_engine(self):
+        """Test _init_graphviz_engine with non-react-flow engine."""
+        from transitions_reactflow.graph import ReactFlowGraph
+
+        # This tests the fallback to parent class method
+        machine = ReactFlowMachine.__new__(ReactFlowMachine)
+        # Should not raise an error and return parent class result
+        result = machine._init_graphviz_engine('graphviz')
+        # We can't easily assert the exact return type, but it shouldn't be ReactFlowGraph
+        assert result != ReactFlowGraph
