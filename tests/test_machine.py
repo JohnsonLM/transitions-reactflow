@@ -19,13 +19,9 @@ class TestReactFlowMachine:
             states=states, transitions=transitions, initial='idle')
         assert machine.state == 'idle'
 
-    def test_hierarchical_states(self):
-        """Test creating a machine with hierarchical states."""
-        states = [
-            'idle',
-            {'name': 'processing', 'children': ['validating', 'payment']},
-            'completed'
-        ]
+    def test_multiple_states(self):
+        """Test creating a machine with multiple states and transitions."""
+        states = ['idle', 'processing_validating', 'processing_payment', 'completed']
         transitions = [
             {'trigger': 'start', 'source': 'idle',
                 'dest': 'processing_validating'},
@@ -77,14 +73,10 @@ class TestReactFlowMachine:
         assert edge['target'] == 'running'
         assert edge['label'] == 'start'
 
-    def test_unused_parent_states_filtered(self):
-        """Test that unused parent states are filtered from graph."""
-        states = [
-            'idle',
-            {'name': 'processing', 'children': ['validating', 'payment']},
-            'completed'
-        ]
-        # Note: 'processing' parent is never used directly in transitions
+    def test_unused_states_filtered(self):
+        """Test that unused states are filtered from graph."""
+        states = ['idle', 'processing_validating', 'processing_payment', 'completed']
+        # Note: 'processing_payment' is never used in transitions
         transitions = [
             {'trigger': 'start', 'source': 'idle',
                 'dest': 'processing_validating'},
@@ -95,9 +87,9 @@ class TestReactFlowMachine:
             states=states, transitions=transitions, initial='idle')
         graph = machine.get_graph()
 
-        # Parent 'processing' should not appear in nodes since it's unused
+        # 'processing_payment' should not appear in nodes since it's unused
         node_ids = {node['id'] for node in graph['nodes']}
-        assert 'processing' not in node_ids
+        assert 'processing_payment' not in node_ids
         assert 'processing_validating' in node_ids
 
     def test_duplicate_edges_unique_ids(self):
@@ -118,36 +110,12 @@ class TestReactFlowMachine:
         edge_ids = [edge['id'] for edge in graph['edges']]
         assert len(edge_ids) == len(set(edge_ids))  # All IDs unique
 
-    def test_invalid_state_with_children_no_name(self):
-        """Test that state with children must have name."""
-        states = [
-            {'children': ['validating', 'payment']}  # Missing 'name'
-        ]
-
-        with pytest.raises(ValueError, match="must have a 'name' field"):
-            ReactFlowMachine(states=states, transitions=[], initial='idle')
-
-    def test_invalid_children_not_list(self):
-        """Test that children must be a list."""
-        states = [
-            {'name': 'processing', 'children': 'not_a_list'}
-        ]
-
-        with pytest.raises(ValueError, match="must be a list"):
-            ReactFlowMachine(states=states, transitions=[],
-                             initial='processing')
-
-    def test_hierarchical_states_with_dict_children(self):
-        """Test hierarchical states where children are dict objects."""
+    def test_state_with_dict_config(self):
+        """Test states defined with dict configuration."""
         states = [
             'idle',
-            {
-                'name': 'processing',
-                'children': [
-                    {'name': 'validating'},
-                    {'name': 'payment'}
-                ]
-            },
+            {'name': 'processing_validating'},
+            {'name': 'processing_payment'},
             'completed'
         ]
         transitions = [
@@ -175,34 +143,6 @@ class TestReactFlowMachine:
 
         machine.pay()
         assert machine.state == 'completed'
-
-    def test_invalid_child_dict_without_name(self):
-        """Test that child dict must have name."""
-        states = [
-            {
-                'name': 'processing',
-                'children': [
-                    {'label': 'Validation'}  # Missing 'name'
-                ]
-            }
-        ]
-
-        with pytest.raises(ValueError, match="Child state dict must have 'name'"):
-            ReactFlowMachine(states=states, transitions=[],
-                             initial='processing')
-
-    def test_invalid_child_type(self):
-        """Test that invalid child types raise error."""
-        states = [
-            {
-                'name': 'processing',
-                'children': [123]  # Invalid type
-            }
-        ]
-
-        with pytest.raises(ValueError, match="Invalid child type"):
-            ReactFlowMachine(states=states, transitions=[],
-                             initial='processing')
 
     def test_non_react_flow_graph_engine(self):
         """Test _init_graphviz_engine with non-react-flow engine."""

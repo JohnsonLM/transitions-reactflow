@@ -8,7 +8,22 @@ allowing you to visualize state machines as interactive React Flow diagrams.
 __version__ = "0.1.0"
 __author__ = "transitions_reactflow contributors"
 
-from .machine import ReactFlowMachine
+from .machine import (
+    ReactFlowMachine,
+    HierarchicalReactFlowMachine,
+    LockedReactFlowMachine,
+    LockedHierarchicalReactFlowMachine,
+    AsyncReactFlowMachine,
+    HierarchicalAsyncReactFlowMachine,
+)
 from .diagrams_reactflow import ReactFlowGraph
 
-__all__ = ["ReactFlowMachine", "ReactFlowGraph"]
+__all__ = [
+    "ReactFlowMachine",
+    "HierarchicalReactFlowMachine",
+    "LockedReactFlowMachine",
+    "LockedHierarchicalReactFlowMachine",
+    "AsyncReactFlowMachine",
+    "HierarchicalAsyncReactFlowMachine",
+    "ReactFlowGraph",
+]

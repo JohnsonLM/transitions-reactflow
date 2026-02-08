@@ -9,38 +9,12 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-const MACHINES = [
-  {
-    id: "order",
-    name: "E-commerce Order",
-    description: "Order processing with validations and error handling",
-    direction: "TB",
-  },
-  {
-    id: "auth",
-    name: "Authentication",
-    description: "User login flow with MFA and lockout",
-    direction: "LR",
-  },
-  {
-    id: "document",
-    name: "Document Workflow",
-    description: "Draft, review, publish cycle",
-    direction: "TB",
-  },
-  {
-    id: "traffic",
-    name: "Traffic Light",
-    description: "Simple 3-state cycle",
-    direction: "TB",
-  },
-  {
-    id: "cicd",
-    name: "CI/CD Pipeline",
-    description: "Build, test, and deploy flow",
-    direction: "LR",
-  },
-];
+const MACHINE_LAYOUTS = {
+  traffic: { direction: "TB" },
+  auth: { direction: "LR" },
+  device: { direction: "LR" },
+  cicd: { direction: "LR" },
+};
 
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
   const g = new dagre.graphlib.Graph();
@@ -72,22 +46,26 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
 
 export default function App() {
   const [allGraphData, setAllGraphData] = useState(null);
-  const [selectedMachine, setSelectedMachine] = useState("order");
+  const [machineInfo, setMachineInfo] = useState(null);
+  const [selectedMachine, setSelectedMachine] = useState("traffic");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    // Fetch all graph data from the Python backend
-    fetch("http://localhost:5050/graph-data")
-      .then((res) => res.json())
-      .then((data) => {
-        setAllGraphData(data);
+    // Fetch all graph data and machine info from the Python backend
+    Promise.all([
+      fetch("http://localhost:5050/graph-data").then((res) => res.json()),
+      fetch("http://localhost:5050/machines").then((res) => res.json()),
+    ])
+      .then(([graphData, machinesData]) => {
+        setAllGraphData(graphData);
+        setMachineInfo(machinesData);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Error fetching graph data:", err);
+        console.error("Error fetching data:", err);
         setError(err.message);
         setLoading(false);
       });
@@ -117,11 +95,11 @@ export default function App() {
     const [layoutedNodes, layoutedEdges] = getLayoutedElements(
       flowNodes,
       flowEdges,
-      MACHINES.find((m) => m.id === selectedMachine)?.direction || "TB"
+      MACHINE_LAYOUTS[selectedMachine]?.direction || "TB",
     );
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
-  }, [currentData, setNodes, setEdges]);
+  }, [currentData, selectedMachine, setNodes, setEdges]);
 
   if (loading) {
     return (
@@ -141,41 +119,47 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white shadow-md px-8 py-6">
-        <h1 className="text-3xl font-semibold mb-1">
-          State Machine Visualizer
+      <header className="bg-neutral-700 text-white shadow-md px-8 py-6">
+        <h1 className="text-2xl font-semibold">
+          transition-reactflow Demo
         </h1>
-        <p className="text-sm opacity-90">transitions_rf - React Flow Demo</p>
       </header>
 
       <div className="flex gap-2 px-5 py-4 bg-white border-b border-gray-200 overflow-x-auto">
-        {MACHINES.map((machine) => (
-          <button
-            key={machine.id}
-            className={`flex-1 min-w-40 px-4 py-3 rounded-lg border transition-all text-left ${
-              selectedMachine === machine.id
-                ? "bg-indigo-600 border-indigo-600 text-white"
-                : "bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200 hover:border-gray-400"
-            }`}
-            onClick={() => setSelectedMachine(machine.id)}
-          >
-            <div className="font-semibold text-sm mb-1">{machine.name}</div>
-            <div className="text-xs opacity-80 leading-tight">
-              {machine.description}
-            </div>
-          </button>
-        ))}
+        {machineInfo &&
+          machineInfo.map((info) => (
+            <button
+              key={info.id}
+              className={`flex-1 min-w-44 px-4 py-3 rounded-lg border transition-all text-left ${
+                selectedMachine === info.id
+                  ? "bg-indigo-600 border-indigo-600 text-white"
+                  : "bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200 hover:border-gray-400"
+              }`}
+              onClick={() => setSelectedMachine(info.id)}
+            >
+              <div className="font-semibold text-sm mb-2 capitalize">
+                {info.id.replace("_", " ")}
+              </div>
+              <div className="text-xs opacity-70 font-mono">
+                {info.type}
+              </div>
+            </button>
+          ))}
       </div>
 
       <div className="flex justify-center items-center px-5 py-3 bg-white border-b border-gray-200">
-        {currentData && (
-          <div className="flex gap-3 text-sm text-gray-600">
+        {currentData && machineInfo && (
+          <div className="flex gap-4 text-sm text-gray-600">
             <span className="font-medium">
               {currentData.nodes.length} states
             </span>
             <span>•</span>
             <span className="font-medium">
               {currentData.edges.length} transitions
+            </span>
+            <span>•</span>
+            <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+              {machineInfo.find((m) => m.id === selectedMachine)?.type}
             </span>
           </div>
         )}
