@@ -1,6 +1,6 @@
 """React Flow state machine with hierarchical state support."""
 
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any
 from transitions.extensions import GraphMachine
 from .graph import ReactFlowGraph
 
@@ -80,15 +80,18 @@ class ReactFlowMachine(GraphMachine):
                 parent_name = state.get('name')
 
                 if not parent_name:
-                    raise ValueError("State with 'children' must have a 'name' field")
+                    raise ValueError(
+                        "State with 'children' must have a 'name' field")
 
                 children = state.get('children', [])
 
                 if not isinstance(children, list):
-                    raise ValueError(f"'children' for state '{parent_name}' must be a list")
+                    raise ValueError(
+                        f"'children' for state '{parent_name}' must be a list")
 
                 # Add parent state (will be filtered out by graph if unused)
-                parent_state = {k: v for k, v in state.items() if k != 'children'}
+                parent_state = {k: v for k,
+                                v in state.items() if k != 'children'}
                 processed_states.append(parent_state)
 
                 # Add child states with hierarchical naming
@@ -99,12 +102,14 @@ class ReactFlowMachine(GraphMachine):
                         # Child is a dict, merge with parent prefix
                         child_name = child.get('name')
                         if not child_name:
-                            raise ValueError(f"Child state dict must have 'name': {child}")
+                            raise ValueError(
+                                f"Child state dict must have 'name': {child}")
                         child_copy = child.copy()
                         child_copy['name'] = f"{parent_name}_{child_name}"
                         processed_states.append(child_copy)
                     else:
-                        raise ValueError(f"Invalid child type for '{parent_name}': {type(child)}")
+                        raise ValueError(
+                            f"Invalid child type for '{parent_name}': {type(child)}")
             else:
                 # Simple state or dict without children
                 processed_states.append(state)

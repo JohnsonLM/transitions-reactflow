@@ -20,7 +20,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/johnsonlm/transitions-reactflow",
     packages=find_packages(
-        exclude=["tests", "tests.*", "examples", "react_app"]),
+        exclude=["tests", "tests.*", "examples", "demo", "docs"]),
     python_requires=">=3.7",
     install_requires=[
         "transitions>=0.8.0",
