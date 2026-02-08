@@ -35,7 +35,7 @@ jobs:
     - name: Run tests
       run: |
         pip install -e .
-        pip install pytest pytest-cov
+        pip install pytest pytest-cov pytest-asyncio
         pytest tests/
 
     - name: Build package
