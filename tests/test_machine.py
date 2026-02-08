@@ -206,7 +206,7 @@ class TestReactFlowMachine:
 
     def test_non_react_flow_graph_engine(self):
         """Test _init_graphviz_engine with non-react-flow engine."""
-        from transitions_reactflow.graph import ReactFlowGraph
+        from transitions_reactflow.diagrams_reactflow import ReactFlowGraph
 
         # This tests the fallback to parent class method
         machine = ReactFlowMachine.__new__(ReactFlowMachine)

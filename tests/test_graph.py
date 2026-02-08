@@ -145,7 +145,7 @@ class TestReactFlowGraph:
 
     def test_set_previous_transition(self):
         """Test set_previous_transition method (no-op for React Flow)."""
-        from transitions_reactflow.graph import ReactFlowGraph
+        from transitions_reactflow.diagrams_reactflow import ReactFlowGraph
 
         graph = ReactFlowGraph(None)
         # Should not raise an error
@@ -154,7 +154,7 @@ class TestReactFlowGraph:
 
     def test_get_graph_exception_handling(self):
         """Test exception handling in get_graph method."""
-        from transitions_reactflow.graph import ReactFlowGraph
+        from transitions_reactflow.diagrams_reactflow import ReactFlowGraph
         from unittest.mock import patch
 
         graph = ReactFlowGraph(None)

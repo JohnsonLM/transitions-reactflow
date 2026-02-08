@@ -9,6 +9,6 @@ __version__ = "0.1.0"
 __author__ = "transitions_reactflow contributors"
 
 from .machine import ReactFlowMachine
-from .graph import ReactFlowGraph
+from .diagrams_reactflow import ReactFlowGraph
 
 __all__ = ["ReactFlowMachine", "ReactFlowGraph"]

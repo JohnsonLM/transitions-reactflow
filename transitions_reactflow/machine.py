@@ -2,7 +2,7 @@
 
 from typing import List, Union, Dict, Any
 from transitions.extensions import GraphMachine
-from .graph import ReactFlowGraph
+from .diagrams_reactflow import ReactFlowGraph
 
 
 class ReactFlowMachine(GraphMachine):

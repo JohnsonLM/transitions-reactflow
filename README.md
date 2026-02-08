@@ -4,25 +4,24 @@ A React Flow graph engine extension for the [pytransitions](https://github.com/p
 
 ## Features
 
-- ✅ **React Flow Compatible**: Generates graph data that can be directly consumed by React Flow
-- ✅ **Hierarchical States**: Support for nested states using a `children` parameter
-- ✅ **Smart Filtering**: Automatically filters out unused parent states from the graph
-- ✅ **Unique Edge IDs**: Handles duplicate transitions with unique edge identifiers
-- ✅ **Type Hints**: Fully typed with comprehensive type annotations
-- ✅ **Error Handling**: Validates input and provides helpful error messages
-- ✅ **Well Tested**: Comprehensive test suite included
+- ✅ React Flow compatible graph data
+- ✅ Hierarchical states with `children` parameter
+- ✅ Smart filtering of unused states
+- ✅ Unique edge IDs for duplicate transitions
+- ✅ Full type hints with .pyi stub files
+- ✅ Comprehensive test suite
 
 ## Installation
 
 ```bash
-pip install transitions-rf
+pip install transitions-reactflow
 ```
 
 Or install from source:
 
 ```bash
-git clone <repository-url>
-cd transitions_reactflow
+git clone https://github.com/johnsonlm/transitions-reactflow
+cd transitions-reactflow
 pip install -e .
 ```
 
@@ -31,13 +30,10 @@ pip install -e .
 ```python
 from transitions_reactflow import ReactFlowMachine
 
-# Define states with hierarchical structure
+# Define states with hierarchy
 states = [
     'idle',
-    {
-        'name': 'processing',
-        'children': ['validating', 'payment', 'fulfillment']
-    },
+    {'name': 'processing', 'children': ['validating', 'payment']},
     'completed'
 ]
 
@@ -45,35 +41,19 @@ states = [
 transitions = [
     {'trigger': 'start', 'source': 'idle', 'dest': 'processing_validating'},
     {'trigger': 'validate', 'source': 'processing_validating', 'dest': 'processing_payment'},
-    {'trigger': 'pay', 'source': 'processing_payment', 'dest': 'processing_fulfillment'},
-    {'trigger': 'finish', 'source': 'processing_fulfillment', 'dest': 'completed'}
+    {'trigger': 'finish', 'source': 'processing_payment', 'dest': 'completed'}
 ]
 
-# Create the machine
-machine = ReactFlowMachine(
-    states=states,
-    transitions=transitions,
-    initial='idle'
-)
-
-# Get React Flow compatible graph data
+# Create machine and get graph data
+machine = ReactFlowMachine(states=states, transitions=transitions, initial='idle')
 graph_data = machine.get_graph()
 
-# Use in your React Flow application
-print(graph_data)
-# {
-#   'nodes': [
-#     {'id': 'idle', 'data': {'label': 'idle'}, 'position': {'x': 0, 'y': 0}},
-#     ...
-#   ],
-#   'edges': [
-#     {'id': 'e-idle-processing_validating', 'source': 'idle', 'target': 'processing_validating', 'label': 'start'},
-#     ...
-#   ]
-# }
+# Returns: {'nodes': [...], 'edges': [...]}
 ```
 
-## Usage with Flask
+## Usage
+
+### With Flask Backend
 
 ```python
 from flask import Flask, jsonify
@@ -81,87 +61,65 @@ from flask_cors import CORS
 from transitions_reactflow import ReactFlowMachine
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for frontend requests
 
-# Create your state machine
 machine = ReactFlowMachine(states=states, transitions=transitions, initial='idle')
-graph_data = machine.get_graph()
 
 @app.route('/graph-data')
 def get_graph_data():
-    return jsonify(graph_data)
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    return jsonify(machine.get_graph())
 ```
 
-## React Flow Integration
-
-On the frontend (React):
+### With React Frontend
 
 ```javascript
-import { useEffect, useState } from 'react';
 import ReactFlow from 'reactflow';
-import 'reactflow/dist/style.css';
 
-export default function StateMachineFlow() {
-  const [graphData, setGraphData] = useState(null);
+function StateMachineFlow() {
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/graph-data')
-      .then(res => res.json())
-      .then(data => setGraphData(data));
+    fetch('/graph-data').then(res => res.json()).then(setData);
   }, []);
 
-  if (!graphData) return <div>Loading...</div>;
-
-  return (
-    <ReactFlow
-      nodes={graphData.nodes}
-      edges={graphData.edges}
-      fitView
-    />
-  );
+  return data && <ReactFlow nodes={data.nodes} edges={data.edges} fitView />;
 }
 ```
 
 ## Hierarchical States
 
-The extension supports hierarchical states using a `children` parameter:
+Use `children` for nested states:
 
 ```python
 states = [
     'idle',
-    {
-        'name': 'error',
-        'children': ['validation_error', 'payment_error', 'network_error']
-    }
+    {'name': 'error', 'children': ['validation', 'payment', 'network']}
 ]
+# Creates: error, error_validation, error_payment, error_network
 ```
 
-This creates states: `error`, `error_validation_error`, `error_payment_error`, and `error_network_error`.
+**Note**: Unused parent states are automatically filtered from the graph.
 
-**Important**: Unused parent states are automatically filtered out of the graph. Only states that appear in transitions will be included in the output.
-
-## API Reference
+## API
 
 ### ReactFlowMachine
 
-Main class that extends `transitions.extensions.GraphMachine`.
+Extends `transitions.extensions.GraphMachine`.
 
-**Constructor Parameters:**
-- `states`: List of state definitions (strings or dicts)
-- `transitions`: List of transition definitions
-- `initial`: Initial state name
-- `graph_engine`: Automatically set to 'react-flow' (optional)
-- All other `GraphMachine` parameters
+- `get_graph(title=None, roi_state=None)` → `{'nodes': [...], 'edges': [...]}`
+- `add_states(states)` - supports hierarchical definitions
+- All standard pytransitions methods
 
-**Methods:**
-- `get_graph(title=None, roi_state=None)`: Returns dict with `nodes` and `edges`
-- `add_states(states)`: Add states with hierarchical support
-- All standard pytransitions `Machine` methods
+### ReactFlowGraph
 
-### Graph Data Format
+Extends `transitions.extensions.diagrams_base.BaseGraph`.
+
+- `get_graph(title=None, roi_state=None)` → React Flow data
+- Standard BaseGraph methods
+
+## Graph Data Format
+
+The `get_graph()` method returns React Flow compatible data:
 
 **Nodes:**
 ```python
@@ -184,23 +142,20 @@ Main class that extends `transitions.extensions.GraphMachine`.
 
 ## Development
 
-### Running Tests
-
 ```bash
-pip install pytest
+# Tests
 pytest tests/
-```
 
-### Running with Coverage
-
-```bash
-pip install pytest-cov
+# Coverage
 pytest --cov=transitions_reactflow tests/
+
+# Type checking
+mypy transitions_reactflow/
 ```
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT - see LICENSE file
 
 ## Contributing
 
@@ -208,4 +163,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Credits
 
-Built on top of the excellent [pytransitions](https://github.com/pytransitions/transitions) library.
+Built on top of the [pytransitions](https://github.com/pytransitions/transitions) library.

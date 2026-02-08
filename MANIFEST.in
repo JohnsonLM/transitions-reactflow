@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+include transitions_reactflow/*.pyi
+include transitions_reactflow/py.typed
