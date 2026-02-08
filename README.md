@@ -2,15 +2,6 @@
 
 A React Flow graph engine extension for the [pytransitions](https://github.com/pytransitions/transitions) state machine library.
 
-## Features
-
-- ✅ React Flow compatible graph data
-- ✅ Hierarchical states with `children` parameter
-- ✅ Smart filtering of unused states
-- ✅ Unique edge IDs for duplicate transitions
-- ✅ Full type hints with .pyi stub files
-- ✅ Comprehensive test suite
-
 ## Installation
 
 ```bash
@@ -107,7 +98,7 @@ states = [
 Extends `transitions.extensions.GraphMachine`.
 
 - `get_graph(title=None, roi_state=None)` → `{'nodes': [...], 'edges': [...]}`
-- `add_states(states)` - supports hierarchical definitions
+- `add_states(states)`
 - All standard pytransitions methods
 
 ### ReactFlowGraph
