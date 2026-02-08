@@ -12,3 +12,4 @@ venv/
 *.swp
 *.swo
 .DS_Store
+*.egg-info/

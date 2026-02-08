@@ -12,13 +12,13 @@ long_description = readme_file.read_text(
 version = "0.1.0"
 
 setup(
-    name="transitions-rf",
+    name="transitions-reactflow",
     version=version,
-    author="transitions_rf contributors",
+    author="transitions-reactflow contributors",
     description="React Flow graph engine for pytransitions state machines",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/transitions-rf",  # Update with actual URL
+    url="https://github.com/johnsonlm/transitions-reactflow",
     packages=find_packages(
         exclude=["tests", "tests.*", "examples", "react_app"]),
     python_requires=">=3.7",
